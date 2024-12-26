@@ -8,23 +8,32 @@ if exists("b:did_ftplugin")
   finish
 endif
 
-nnoremap <silent> <buffer> + :call NewTask()<cr>A
-vnoremap <silent> <buffer> + :call NewTask()<cr>
-noremap <silent> <buffer> = :call ToggleComplete()<cr>
-noremap <silent> <buffer> <C-M> :call ToggleCancel()<cr>
-nnoremap <silent> <buffer> - :call ArchiveTasks()<cr>
+if has('unix')
+  nnoremap <silent> <buffer> <Esc>' :call NewTask()<cr>A
+  vnoremap <silent> <buffer> <Esc>' :call NewTask()<cr>
+  noremap <silent> <buffer> <Esc>d :call ToggleComplete()<cr>
+  noremap <silent> <buffer> <Esc>x :call ToggleCancel()<cr>
+  nnoremap <silent> <buffer> <Esc>a :call ArchiveTasks()<cr>
+else  " Windows
+  nnoremap <silent> <buffer> <A-'> :call NewTask()<cr>A
+  vnoremap <silent> <buffer> <A-'> :call NewTask()<cr>
+  noremap <silent> <buffer> <A-d> :call ToggleComplete()<cr>
+  noremap <silent> <buffer> <A-x> :call ToggleCancel()<cr>
+  nnoremap <silent> <buffer> <A-a> :call ArchiveTasks()<cr>
+endif
 abbr -- <c-r>=Separator()<cr>
 
 " when pressing enter within a task it creates another task
-setlocal comments+=n:☐
+" setlocal comments+=n:*
+setlocal comments=s1:/-,mb:-,ex:-/
 
 function! ToggleComplete()
   let line = getline('.')
-  if line =~ "^ *✔"
-    s/^\( *\)✔/\1☐/
+  if line =~ "^\t*+"
+    s/^\(\t*\)+/\1-/
     s/ *@done.*$//
-  elseif line =~ "^ *☐"
-    s/^\( *\)☐/\1✔/
+  elseif line =~ "^\t*-"
+    s/^\(\t*\)-/\1+/
     let text = " @done (" . strftime("%Y-%m-%d %H:%M") .")"
     exec "normal A" . text
     normal _
@@ -33,11 +42,11 @@ endfunc
 
 function! ToggleCancel()
   let line = getline('.')
-  if line =~ "^ *✘"
-    s/^\( *\)✘/\1☐/
+  if line =~ "^\t*x"
+    s/^\(\t*\)x/\1-/
     s/ *@cancelled.*$//
-  elseif line =~ "^ *☐"
-    s/^\( *\)☐/\1✘/
+  elseif line =~ "^\t*-"
+    s/^\(\t*\)-/\1x/
     let text = " @cancelled (" . strftime("%Y-%m-%d %H:%M") .")"
     exec "normal A" . text
     normal _
@@ -47,9 +56,9 @@ endfunc
 function! NewTask()
   let line=getline('.')
   if line =~ "^ *$"
-    normal A☐ 
+    exec "normal A" . "\t- "
   else
-    normal I☐ 
+    exec "normal I" . "- "
   end
 endfunc
 
@@ -68,9 +77,9 @@ function! ArchiveTasks()
 
     let found=0
     let a_reg = @a
-    if search("✔", "", archive_start) != 0
+    if search("+", "", archive_start) != 0
         call cursor(1,1)
-        while search("✔", "", archive_start) > 0
+        while search("+", "", archive_start) > 0
             if (found == 0)
                 normal "add
             else
