@@ -4,7 +4,7 @@
 " Credits: David Elentok
 " Credits: ArchiveTasks() added by Nik van der Ploeg
 " Description: Syntax highlighting for PlainTasks files.
-" Last Modified: 2025-01-25
+" Version: 0.1.250125a
 
 " Only do this when not done yet for this buffer
 if exists("b:did_ftplugin")

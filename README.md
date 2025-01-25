@@ -1,25 +1,37 @@
 # vim-plaintasks
 
-`vim-plaintasks` is a lightweight plugin for [Vim](https://www.vim.org) and [Neovim](https://neovim.io) that enhances task management with syntax highlighting and keyboard shortcuts tailored to the [PlainTasks](https://github.com/aziz/PlainTasks) format.
+`vim-plaintasks` is a lightweight plugin for [Vim](https://www.vim.org) and [Neovim](https://neovim.io) that offers basic syntax support & task management for the [PlainTasks](https://github.com/aziz/PlainTasks) format.
 
-This plugin is a fork of [elentok/plaintasks.vim](https://github.com/elentok/plaintasks.vim).
+This plugin is a fork of [elentok/plaintasks.vim](https://github.com/elentok/plaintasks.vim).  
+The `master` branch mirrors the original repository (`elentok/plaintasks.vim`).
 
-The `master` branch mirrors the original repository (`elentok/plaintasks.vim`), ensuring compatibility with upstream changes.
-
-**The `custom` branch (default) includes:**
+**The default `custom` branch provides:**
 
 - Auto-detection for the following file extensions:  
   `*.TODO`, `TODO`, `*.todo`, `*.todolist`, `*.taskpaper`, `*.tasks`  
-- Syntax highlighting for tasks, completed tasks, cancelled tasks, and tags.
-
-**Additional customizations:**
 
 - Alternative symbols for task states:  
   `-` for tasks, `+` for completed, `x` for cancelled.  
-- New keybindings for enhanced usability.  
+
+- Syntax highlighting for tasks, completed tasks, cancelled tasks, tags,  
+  task comments/descriptions, markdown headers.
+
+- Highlighting for the `@spot`, `@low`, `@today`, `@high`, `@critical` tags.
+
+- No default Keybindings. User should set their own.  
+  Available functions: `ToggleTask()`, `ToggleDone()`, `ToggleCancel()`,  
+  `ArchiveTasks()`, `Separator()`
 
 GitHub: <https://github.com/Gregory-K/vim-plaintasks>  
 Mod   : Gregory.K
+
+
+## Notes
+
+Currently,
+
+- The `ArchiveTasks()` does **! NOT !** work as intended for task descriptions. Do not use it if you utilize task comments/descriptions.
+- vim-plaintasks requires a terminal with support for 256 colours or higher.
 
 
 ## Installation
@@ -40,6 +52,8 @@ Then, install the plugin:
 :PlugInstall
 ```
 
+Proceed settting-up your keybindings / key-mappings.
+
 ### Manual Installation
 
 Clone this repository into  
@@ -51,6 +65,55 @@ cd ~/.config/vim/pack/vendor/start/vim-plaintasks
 git clone https://github.com/Gregory-K/vim-plaintasks .
 ```
 
+Proceed setting-up your keybindings / key-mappings.
+
+### Keybindings / Key-Mappings
+
+No default mappings provided. User should define their own in `.vimrc`.
+
+**Available Functions:**
+
+- ToggleTask() _(toggles the state of line as task or not)_
+- ToggleDone()
+- ToggleCancel()
+- ArchiveTasks()
+- Separator()
+
+#### Examples
+
+_using leader key mappings_  
+```vim
+" Plaintasks
+nnoremap <silent> <buffer> <Esc>t :call ToggleTask()<CR>
+vnoremap <silent> <buffer> <Esc>t :call ToggleTask()<CR>
+noremap <silent> <buffer> <Esc>d :call ToggleTaskDone()<CR>
+noremap <silent> <buffer> <Esc>x :call ToggleTaskCancel()<CR>
+nnoremap <silent> <buffer> <Esc>a :call ArchiveTasks()<CR>
+abbr -- <c-r>=TaskSeparator()<CR>
+```
+
+_using Alt keybindings_  
+```vim
+" Plaintasks
+" On Unix-like systems, Alt key behavior depends on the terminal emulator
+" & shell configuration.
+" On Windows, Alt key combinations generally function directly for keybindings.
+if has('unix')
+  nnoremap <silent> <buffer> <Esc>t :call ToggleTask()<CR>
+  vnoremap <silent> <buffer> <Esc>t :call ToggleTask()<CR>
+  noremap <silent> <buffer> <Esc>d :call ToggleTaskDone()<CR>
+  noremap <silent> <buffer> <Esc>x :call ToggleTaskCancel()<CR>
+  nnoremap <silent> <buffer> <Esc>a :call ArchiveTasks()<CR>
+else  " Windows
+  nnoremap <silent> <buffer> <A-t> :call ToggleTask()<CR>
+  vnoremap <silent> <buffer> <A-t> :call ToggleTask()<CR>
+  noremap <silent> <buffer> <A-d> :call ToggleTaskDone()<CR>
+  noremap <silent> <buffer> <A-x> :call ToggleTaskCancel()<CR>
+  nnoremap <silent> <buffer> <A-a> :call ArchiveTasks()<CR>
+endif
+abbr -- <c-r>=TaskSeparator()<CR>
+```
+
 
 ## Usage
 
@@ -60,60 +123,4 @@ Open any supported file (`*.tasks`, `*.TODO`, etc.) in Vim or Neovim to automati
 vim project.tasks
 ```
 
-### Keybindings / Keyboard Shorcuts
-
-**Normal-mode / Visual-mode**
-
-`Alt + e`   : create new task
-`Alt + d`   : toggle complete
-`Alt + x`   : toggle cancel
-`Alt + a`   : archive tasks
-
-**Insert-mode**
-
-`--<space>` : insert a separator line
-
-#### Customize
-
-Keybindings can be modified by editing `ftplugin/plaintasks.vim`.  
-The current keybindings are set as follows:
-
-_now:_
-```vim
-if has('unix')
-  nnoremap <silent> <buffer> <Esc>' :call NewTask()<cr>A
-  vnoremap <silent> <buffer> <Esc>' :call NewTask()<cr>
-  noremap <silent> <buffer> <Esc>d :call ToggleComplete()<cr>
-  noremap <silent> <buffer> <Esc>x :call ToggleCancel()<cr>
-  nnoremap <silent> <buffer> <Esc>a :call ArchiveTasks()<cr>
-else  " Windows
-  nnoremap <silent> <buffer> <A-'> :call NewTask()<cr>A
-  vnoremap <silent> <buffer> <A-'> :call NewTask()<cr>
-  noremap <silent> <buffer> <A-d> :call ToggleComplete()<cr>
-  noremap <silent> <buffer> <A-x> :call ToggleCancel()<cr>
-  nnoremap <silent> <buffer> <A-a> :call ArchiveTasks()<cr>
-endif
-abbr -- <c-r>=Separator()<cr>
-```
-
-_previous defaults_  
-```vim
-" previous defaults
-nnoremap <silent> <buffer> + :call NewTask()<cr>A
-vnoremap <silent> <buffer> + :call NewTask()<cr>
-noremap <silent> <buffer> = :call ToggleComplete()<cr>
-noremap <silent> <buffer> <C-M> :call ToggleCancel()<cr>
-nnoremap <silent> <buffer> - :call ArchiveTasks()<cr>
-```
-
-> *Normal-mode / Visual-mode*  
-> ```
-> + - create new task
-> = - toggle complete
-> <C-M> - toggle cancel
-> - - archive tasks
-> ```
-> *Insert-mode*  
-> ```
-> --<space> - insert a separator line
-> ```
+For details on the PlainTasks format, refer to the [PlainTasks](https://github.com/aziz/PlainTasks) documentation.

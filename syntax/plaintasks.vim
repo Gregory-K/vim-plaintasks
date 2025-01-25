@@ -3,7 +3,7 @@
 " Maintainer: Gregory.K
 " Filenames: *.TODO
 " Description: Syntax highlighting for PlainTasks files.
-" Last Modified: 2025-01-25
+" Version: 0.1.250125a
 
 if exists("b:current_syntax")
   finish

@@ -1,36 +1,101 @@
 *plaintasks.txt*   An implementation of Sublime's PlainTasks plugin for Vim
 
-CONTENTS                                                   *plaintasks-contents*
+CONTENTS                                                 *plaintasks-contents*
 
    About..........................|plaintasks-about|
    Usage..........................|plaintasks-filetype|
    Mappings.......................|plaintasks-mappings|
 
 ==============================================================================
-ABOUT                                                         *plaintasks-about*
+ABOUT                                                       *plaintasks-about*
 
-An opinionated todo-list plugin.
+> https://github.com/Gregory-K/vim-plaintasks
+> Version: 0.1.250125a
 
-This plugin is an implementation of the PlainTasks format (see
-https://github.com/aziz/PlainTasks) for Vim
+*vim-plaintasks* is a lightweight plugin for [Vim](https://www.vim.org) and
+[Neovim](https://neovim.io) that offers basic syntax support & task management
+for the [PlainTasks](https://github.com/aziz/PlainTasks) format.
+
+This plugin is a fork of
+[elentok/plaintasks.vim](https://github.com/elentok/plaintasks.vim).
+
+*Provides:*
+
+- Auto-detection for the following file extensions:
+  '*.TODO', 'TODO', '*.todo', '*.todolist', '*.taskpaper', '*.tasks'
+
+- Alternative symbols for task states:
+  '-' for tasks, '+' for completed, 'x' for cancelled.
+
+- Syntax highlighting for tasks, completed tasks, cancelled tasks, tags,
+  task comments/descriptions, markdown headers.
+
+- Highlighting for the '@spot', '@low', '@today', '@high', '@critical' tags.
+
+- No default Keybindings. User should set their own.
+  Available functions: 'ToggleTask()', 'ToggleDone()', 'ToggleCancel()',
+  'ArchiveTasks()', 'Separator()'
+
+NOTES
+
+Currently,
+- The `ArchiveTasks()` does **! NOT !** work as intended for task descriptions.
+  Do not use it if you utilize task comments/descriptions.
+- vim-plaintasks requires a terminal with support for 256 colours or higher.
 
 ==============================================================================
-FILETYPE                                                   *plaintasks-filetype*
+FILETYPE                                                 *plaintasks-filetype*
 
-Save your todo files with |todo|, |todolist|, |tasks| or |taskpaper| file extensions
-or just name them |TODO| with no extension.
+Save your todo files with 'todo', 'todolist', 'tasks'
+or 'taskpaper' file extensions
+or just name them 'TODO' with no extension.
 
 ==============================================================================
-MAPPINGS                                                   *plaintasks-mappings*
+MAPPINGS                                                 *plaintasks-mappings*
 
-  *Normal-mode/Visual-mode*
-      |+|         Create new task
-      |=|         Toggle complete
-      |<C-M>|     Toggle cancel
-      |-|         Archive tasks
+No default mappings provided. User should define their own in '.vimrc'.
 
-  *Insert-mode*
-      |<--->|     Insert a separator line
+Available Functions:
+
+- ToggleTask() _(toggles the state of line as task or not)_
+- ToggleTaskDone()
+- ToggleTaskCancel()
+- ArchiveTasks()
+- TaskSeparator()
+
+EXAMPLES
+
+_using leader key mappings_
+```vim
+" Plaintasks
+nnoremap <silent> <buffer> <Esc>t :call ToggleTask()<CR>
+vnoremap <silent> <buffer> <Esc>t :call ToggleTask()<CR>
+noremap <silent> <buffer> <Esc>d :call ToggleTaskDone()<CR>
+noremap <silent> <buffer> <Esc>x :call ToggleTaskCancel()<CR>
+nnoremap <silent> <buffer> <Esc>a :call ArchiveTasks()<CR>
+abbr -- <c-r>=TaskSeparator()<CR>
+```
+
+_using Alt keybindings_
+```vim
+" Plaintasks
+" On Unix-like systems, Alt key behavior depends on the terminal emulator
+" & shell configuration.
+" On Windows, Alt key combinations generally function directly for keybindings.
+if has('unix')
+  nnoremap <silent> <buffer> <Esc>t :call ToggleTask()<CR>
+  vnoremap <silent> <buffer> <Esc>t :call ToggleTask()<CR>
+  noremap <silent> <buffer> <Esc>d :call ToggleTaskDone()<CR>
+  noremap <silent> <buffer> <Esc>x :call ToggleTaskCancel()<CR>
+  nnoremap <silent> <buffer> <Esc>a :call ArchiveTasks()<CR>
+else  " Windows
+  nnoremap <silent> <buffer> <A-t> :call ToggleTask()<CR>
+  vnoremap <silent> <buffer> <A-t> :call ToggleTask()<CR>
+  noremap <silent> <buffer> <A-d> :call ToggleTaskDone()<CR>
+  noremap <silent> <buffer> <A-x> :call ToggleTaskCancel()<CR>
+  nnoremap <silent> <buffer> <A-a> :call ArchiveTasks()<CR>
+endif
+abbr --
 
 ==============================================================================
 vim:ft=help:et:ts=2:sw=2:sts=2:norl
