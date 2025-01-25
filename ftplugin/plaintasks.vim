@@ -1,65 +1,60 @@
 "Vim filetype plugin
 " Language: PlainTasks
-" Maintainer: David Elentok
-" ArchiveTasks() added by Nik van der Ploeg
+" Maintainer: Gregory.K
+" Credits: David Elentok
+" Credits: ArchiveTasks() added by Nik van der Ploeg
+" Description: Syntax highlighting for PlainTasks files.
+" Last Modified: 2025-01-25
 
 " Only do this when not done yet for this buffer
 if exists("b:did_ftplugin")
-  finish
+    finish
 endif
 
-if has('unix')
-  nnoremap <silent> <buffer> <Esc>' :call NewTask()<cr>A
-  vnoremap <silent> <buffer> <Esc>' :call NewTask()<cr>
-  noremap <silent> <buffer> <Esc>d :call ToggleComplete()<cr>
-  noremap <silent> <buffer> <Esc>x :call ToggleCancel()<cr>
-  nnoremap <silent> <buffer> <Esc>a :call ArchiveTasks()<cr>
-else  " Windows
-  nnoremap <silent> <buffer> <A-'> :call NewTask()<cr>A
-  vnoremap <silent> <buffer> <A-'> :call NewTask()<cr>
-  noremap <silent> <buffer> <A-d> :call ToggleComplete()<cr>
-  noremap <silent> <buffer> <A-x> :call ToggleCancel()<cr>
-  nnoremap <silent> <buffer> <A-a> :call ArchiveTasks()<cr>
-endif
-abbr -- <c-r>=Separator()<cr>
+" helps initial tasks overview
+setlocal nowrap
 
 " when pressing enter within a task it creates another task
 " setlocal comments+=n:*
 setlocal comments=s1:/-,mb:-,ex:-/
 
-function! ToggleComplete()
-  let line = getline('.')
-  if line =~ "^\t*+"
-    s/^\(\t*\)+/\1-/
-    s/ *@done.*$//
-  elseif line =~ "^\t*-"
-    s/^\(\t*\)-/\1+/
-    let text = " @done (" . strftime("%Y-%m-%d %H:%M") .")"
-    exec "normal A" . text
-    normal _
-  endif
+function! ToggleTaskDone()
+    let line = getline('.')
+    let indent = matchstr(line, '^\s*')
+    if line =~ '^\s*+'
+        exec 'substitute/^' . indent . '+/' . indent . '-/'
+        substitute/ *@done.*$//
+    elseif line =~ '^\s*-'
+        exec 'substitute/^' . indent . '-/' . indent . '+/'
+        let text = " @done (" . strftime("%Y-%m-%d %H:%M") .")"
+        exec "normal A" . text
+        normal _
+    endif
 endfunc
 
-function! ToggleCancel()
-  let line = getline('.')
-  if line =~ "^\t*x"
-    s/^\(\t*\)x/\1-/
-    s/ *@cancelled.*$//
-  elseif line =~ "^\t*-"
-    s/^\(\t*\)-/\1x/
-    let text = " @cancelled (" . strftime("%Y-%m-%d %H:%M") .")"
-    exec "normal A" . text
-    normal _
-  endif
+function! ToggleTaskCancel()
+    let line = getline('.')
+    let indent = matchstr(line, '^\s*')
+    if line =~ '^\s*x'
+        exec 'substitute/^' . indent . 'x/' . indent . '-/'
+        substitute/ *@cancelled.*$//
+    elseif line =~ '^\s*-'
+        exec 'substitute/^' . indent . '-/' . indent . 'x/'
+        let text = " @cancelled (" . strftime("%Y-%m-%d %H:%M") .")"
+        exec "normal A" . text
+        normal _
+    endif
 endfunc
 
-function! NewTask()
-  let line=getline('.')
-  if line =~ "^ *$"
-    exec "normal A" . "\t- "
-  else
-    exec "normal I" . "- "
-  end
+function! ToggleTask()
+    let line = getline('.')
+    let indent = matchstr(line, '^\s*')
+    if line =~ '^\s*-'
+        let trimmed_line = substitute(line, '^\s*-\s*', indent, '')
+        call setline('.', trimmed_line)
+    else
+        exec "normal I- "
+    endif
 endfunc
 
 function! ArchiveTasks()
@@ -98,10 +93,10 @@ function! ArchiveTasks()
     call cursor(orig_line, orig_col)
 endfunc
 
-function! Separator()
+function! TaskSeparator()
     let line = getline('.')
     if line =~ "^-*$"
-      return "--- ✄ -----------------------"
+      return "---- ✄ -----------------------"
     else
       return "--"
     end
