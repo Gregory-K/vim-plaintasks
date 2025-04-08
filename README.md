@@ -81,37 +81,34 @@ No default mappings provided. User should define their own in `.vimrc`.
 
 #### Examples
 
-_using leader key mappings_  
-```vim
-" Plaintasks
-nnoremap <silent> <buffer> <Esc>t :call ToggleTask()<CR>
-vnoremap <silent> <buffer> <Esc>t :call ToggleTask()<CR>
-noremap <silent> <buffer> <Esc>d :call ToggleTaskDone()<CR>
-noremap <silent> <buffer> <Esc>x :call ToggleTaskCancel()<CR>
-nnoremap <silent> <buffer> <Esc>a :call ArchiveTasks()<CR>
-abbr -- <c-r>=TaskSeparator()<CR>
-```
+Using autocommand-based mappings (recommended):
 
-_using Alt keybindings_  
-```vim
+```viml
 " Plaintasks
 " On Unix-like systems, Alt key behavior depends on the terminal emulator
 " & shell configuration.
 " On Windows, Alt key combinations generally function directly for keybindings.
-if has('unix')
-  nnoremap <silent> <buffer> <Esc>t :call ToggleTask()<CR>
-  vnoremap <silent> <buffer> <Esc>t :call ToggleTask()<CR>
-  noremap <silent> <buffer> <Esc>d :call ToggleTaskDone()<CR>
-  noremap <silent> <buffer> <Esc>x :call ToggleTaskCancel()<CR>
-  nnoremap <silent> <buffer> <Esc>a :call ArchiveTasks()<CR>
-else  " Windows
-  nnoremap <silent> <buffer> <A-t> :call ToggleTask()<CR>
-  vnoremap <silent> <buffer> <A-t> :call ToggleTask()<CR>
-  noremap <silent> <buffer> <A-d> :call ToggleTaskDone()<CR>
-  noremap <silent> <buffer> <A-x> :call ToggleTaskCancel()<CR>
-  nnoremap <silent> <buffer> <A-a> :call ArchiveTasks()<CR>
-endif
-abbr -- <c-r>=TaskSeparator()<CR>
+augroup plaintasks_mappings
+  autocmd!
+  autocmd FileType plaintasks call s:SetupPlainTasksMappings()
+augroup END
+
+function! s:SetupPlainTasksMappings()
+  if has('unix')
+    nnoremap <silent> <buffer> <Esc>t :call ToggleTask()<CR>
+    vnoremap <silent> <buffer> <Esc>t :call ToggleTask()<CR>
+    noremap  <silent> <buffer> <Esc>d :call ToggleTaskDone()<CR>
+    noremap  <silent> <buffer> <Esc>x :call ToggleTaskCancel()<CR>
+    nnoremap <silent> <buffer> <Esc>a :call ArchiveTasks()<CR>
+  else  " Windows
+    nnoremap <silent> <buffer> <A-t> :call ToggleTask()<CR>
+    vnoremap <silent> <buffer> <A-t> :call ToggleTask()<CR>
+    noremap  <silent> <buffer> <A-d> :call ToggleTaskDone()<CR>
+    noremap  <silent> <buffer> <A-x> :call ToggleTaskCancel()<CR>
+    nnoremap <silent> <buffer> <A-a> :call ArchiveTasks()<CR>
+  endif
+  iabbr <buffer> -- <C-R>=TaskSeparator()<CR>
+endfunction
 ```
 
 
