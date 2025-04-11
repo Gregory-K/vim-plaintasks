@@ -33,8 +33,9 @@ This plugin is a fork of
 - Highlighting for the '@spot', '@low', '@today', '@high', '@critical' tags.
 
 - No default Keybindings. User should set their own.
-  Available functions: 'ToggleTask()', 'ToggleDone()', 'ToggleCancel()',
-  'ArchiveTasks()', 'Separator()'
+  Available functions:
+  `ToggleTask()`, `ToggleTaskDone()`, `ToggleTaskCancelled()`,
+  `ArchiveTasks()`, `TaskSeparator()`
 
 NOTES
 
@@ -59,43 +60,39 @@ Available Functions:
 
 - ToggleTask() _(toggles the state of line as task or not)_
 - ToggleTaskDone()
-- ToggleTaskCancel()
+- ToggleTaskCancelled()
 - ArchiveTasks()
 - TaskSeparator()
 
 EXAMPLES
 
-_using leader key mappings_
-```vim
-" Plaintasks
-nnoremap <silent> <buffer> <Esc>t :call ToggleTask()<CR>
-vnoremap <silent> <buffer> <Esc>t :call ToggleTask()<CR>
-noremap <silent> <buffer> <Esc>d :call ToggleTaskDone()<CR>
-noremap <silent> <buffer> <Esc>x :call ToggleTaskCancel()<CR>
-nnoremap <silent> <buffer> <Esc>a :call ArchiveTasks()<CR>
-abbr -- <c-r>=TaskSeparator()<CR>
 ```
-
-_using Alt keybindings_
-```vim
 " Plaintasks
 " On Unix-like systems, Alt key behavior depends on the terminal emulator
 " & shell configuration.
 " On Windows, Alt key combinations generally function directly for keybindings.
-if has('unix')
-  nnoremap <silent> <buffer> <Esc>t :call ToggleTask()<CR>
-  vnoremap <silent> <buffer> <Esc>t :call ToggleTask()<CR>
-  noremap <silent> <buffer> <Esc>d :call ToggleTaskDone()<CR>
-  noremap <silent> <buffer> <Esc>x :call ToggleTaskCancel()<CR>
-  nnoremap <silent> <buffer> <Esc>a :call ArchiveTasks()<CR>
-else  " Windows
-  nnoremap <silent> <buffer> <A-t> :call ToggleTask()<CR>
-  vnoremap <silent> <buffer> <A-t> :call ToggleTask()<CR>
-  noremap <silent> <buffer> <A-d> :call ToggleTaskDone()<CR>
-  noremap <silent> <buffer> <A-x> :call ToggleTaskCancel()<CR>
-  nnoremap <silent> <buffer> <A-a> :call ArchiveTasks()<CR>
-endif
-abbr --
+augroup plaintasks_mappings
+  autocmd!
+  autocmd FileType plaintasks call s:SetupPlainTasksMappings()
+augroup END
+
+function! s:SetupPlainTasksMappings()
+  if has('unix')
+    nnoremap <silent> <buffer> <Esc>t :call ToggleTask()<CR>
+    vnoremap <silent> <buffer> <Esc>t :call ToggleTask()<CR>
+    noremap  <silent> <buffer> <Esc>d :call ToggleTaskDone()<CR>
+    noremap  <silent> <buffer> <Esc>x :call ToggleTaskCancelled()<CR>
+    nnoremap <silent> <buffer> <Esc>a :call ArchiveTasks()<CR>
+  else  " Windows
+    nnoremap <silent> <buffer> <A-t> :call ToggleTask()<CR>
+    vnoremap <silent> <buffer> <A-t> :call ToggleTask()<CR>
+    noremap  <silent> <buffer> <A-d> :call ToggleTaskDone()<CR>
+    noremap  <silent> <buffer> <A-x> :call ToggleTaskCancelled()<CR>
+    nnoremap <silent> <buffer> <A-a> :call ArchiveTasks()<CR>
+  endif
+  iabbr <buffer> -- <C-R>=TaskSeparator()<CR>
+endfunction
+```
 
 ==============================================================================
 vim:ft=help:et:ts=2:sw=2:sts=2:norl
