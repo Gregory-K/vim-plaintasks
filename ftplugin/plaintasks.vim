@@ -57,40 +57,210 @@ function! ToggleTask()
     endif
 endfunc
 
-function! ArchiveTasks()
-    let orig_line=line('.')
-    let orig_col=col('.')
-    let archive_start = search("^Archive:")
-    if (archive_start == 0)
-        call cursor(line('$'), 1)
-        normal 2o
-        normal iArchive:
-        normal o＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿
-        let archive_start = line('$') - 1
-    endif
-    call cursor(1,1)
+function! ArchiveTasks() abort
+    let orig_line = line('.')
+    let orig_col = col('.')
 
-    let found=0
-    let a_reg = @a
-    if search("+", "", archive_start) != 0
-        call cursor(1,1)
-        while search("+", "", archive_start) > 0
-            if (found == 0)
-                normal "add
-            else
-                normal "Add
+    try
+        " Find or create Archive section
+        let archive_start = search('^Archive:', 'n')
+        if archive_start == 0
+            call append(line('$'), [
+                \ '', '', '---- ✄ -----------------------',
+                \ '', '', '## Archive (linear)', '', 'Archive:'
+                \ ])
+            let archive_start = line('$')
+        endif
+
+        " Collect all lines, stop before Archive section
+        let lines = getbufline('%', 1, archive_start - 1)
+        let tasks_to_archive = []
+        let lines_to_delete = []
+        let current_project = ''
+        let current_subproject = ''
+        let current_task = ''
+        let task_notes = []
+        let task_start_line = 0
+        let i = 0
+
+        " Parse lines
+        while i < len(lines)
+            let line = lines[i]
+            let indent = matchstr(line, '^\s*')
+
+            " Detect project headers
+            if line =~ '^[A-Z._]\+:$'
+                let current_project = substitute(line, ':$', '', '')
+                let current_subproject = ''
+
+            " Detect subproject headers
+            elseif line =~ '^\s\+[a-zA-Z0-9][^:]\+:$'
+                let current_subproject = substitute(line, '^\s*', '', '')
+                let current_subproject = substitute(current_subproject, ':$', '', '')
+
+            " Detect tasks (done, cancelled, or active)
+            elseif line =~ '^\s*[+\-x]\s'
+                " Store previous task if done or cancelled
+                if current_task != '' && (current_task =~ '^\s*[+x]\s')
+                    let date = matchstr(current_task, '@done (\zs[^)]*\ze)')
+                    if date == ''
+                        let date = matchstr(current_task, '@cancelled (\zs[^)]*\ze)')
+                    endif
+                    call add(tasks_to_archive, {
+                        \ 'project': current_project,
+                        \ 'subproject': current_subproject,
+                        \ 'task': current_task,
+                        \ 'notes': task_notes,
+                        \ 'line': task_start_line,
+                        \ 'date': date
+                        \ })
+                    call extend(lines_to_delete, range(task_start_line, i - 1))
+                endif
+                let current_task = line
+                let task_notes = []
+                let task_start_line = i + 1
+
+            " Detect notes
+            elseif line =~ '^\s\+[^+\-x#].*' && current_task != ''
+                call add(task_notes, line)
+
+            " Clear task on section headers or separators
+            elseif line =~ '^#' || line =~ '^\s*$' || line =~ '^----'
+                if current_task != '' && (current_task =~ '^\s*[+x]\s')
+                    let date = matchstr(current_task, '@done (\zs[^)]*\ze)')
+                    if date == ''
+                        let date = matchstr(current_task, '@cancelled (\zs[^)]*\ze)')
+                    endif
+                    call add(tasks_to_archive, {
+                        \ 'project': current_project,
+                        \ 'subproject': current_subproject,
+                        \ 'task': current_task,
+                        \ 'notes': task_notes,
+                        \ 'line': task_start_line,
+                        \ 'date': date
+                        \ })
+                    call extend(lines_to_delete, range(task_start_line, i - 1))
+                endif
+                let current_task = ''
+                let task_notes = []
+                let task_start_line = 0
+                let current_subproject = ''
+
             endif
-            let found = found + 1
-            call cursor(1,1)
+            let i += 1
         endwhile
 
-        call cursor(archive_start + 1,1)
-        normal "ap
-    endif
+        " Store last task if done or cancelled
+        if current_task != '' && (current_task =~ '^\s*[+x]\s')
+            let date = matchstr(current_task, '@done (\zs[^)]*\ze)')
+            if date == ''
+                let date = matchstr(current_task, '@cancelled (\zs[^)]*\ze)')
+            endif
+            call add(tasks_to_archive, {
+                \ 'project': current_project,
+                \ 'subproject': current_subproject,
+                \ 'task': current_task,
+                \ 'notes': task_notes,
+                \ 'line': task_start_line,
+                \ 'date': date
+                \ })
+            call extend(lines_to_delete, range(task_start_line, i - 1))
+        endif
 
-    "clean up
-    let @a = a_reg
-    call cursor(orig_line, orig_col)
+        " Gather existing archived tasks and notes
+        let archive_lines = getbufline('%', archive_start + 1, '$')
+        let current_archive_task = ''
+        let archive_notes = []
+        for line in archive_lines
+            if line =~ '^\s*[+x]\s'
+                " Store previous archive task
+                if current_archive_task != ''
+                    let date = matchstr(current_archive_task, '@done (\zs[^)]*\ze)')
+                    if date == ''
+                        let date = matchstr(current_archive_task, '@cancelled (\zs[^)]*\ze)')
+                    endif
+                    call add(tasks_to_archive, {
+                        \ 'project': '',
+                        \ 'subproject': '',
+                        \ 'task': current_archive_task,
+                        \ 'notes': archive_notes,
+                        \ 'line': 0,
+                        \ 'date': date
+                        \ })
+                endif
+                let current_archive_task = line
+                let archive_notes = []
+            elseif line =~ '^\s\+.*' && current_archive_task != ''
+                call add(archive_notes, line)
+            endif
+        endfor
+        " Store last archived task
+        if current_archive_task != ''
+            let date = matchstr(current_archive_task, '@done (\zs[^)]*\ze)')
+            if date == ''
+                let date = matchstr(current_archive_task, '@cancelled (\zs[^)]*\ze)')
+            endif
+            call add(tasks_to_archive, {
+                \ 'project': '',
+                \ 'subproject': '',
+                \ 'task': current_archive_task,
+                \ 'notes': archive_notes,
+                \ 'line': 0,
+                \ 'date': date
+                \ })
+        endif
+
+        " Sort tasks by date (newest first)
+        let tasks_to_archive = sort(tasks_to_archive, {a, b ->
+            \ b.date > a.date ? 1 :
+            \ b.date < a.date ? -1 : 0
+            \ })
+
+        " Prepare archive lines
+        let new_archive_lines = []
+        for task in tasks_to_archive
+            let task_line = task.task
+            let symbol = matchstr(task_line, '^[ \t]*\zs[+x]\ze\s')
+            let task_content = substitute(task_line, '^[ \t]*[+x]\s*', '', '')
+            let prefix = ''
+            if task.project != ''
+                let prefix = task.project
+                if task.subproject != ''
+                    let prefix .= ' / ' . task.subproject . ': '
+                else
+                    let prefix .= ': '
+                endif
+            endif
+
+            " Exactly one tab for tasks
+            call add(new_archive_lines, "\t" . symbol . ' ' . prefix . task_content)
+
+            " Exactly two tabs for notes
+            for note in task.notes
+                let note_content = substitute(note, '^\s*', '', '')
+                call add(new_archive_lines, "\t\t" . note_content)
+            endfor
+        endfor
+
+        " Clear existing archive lines before replacing
+        let archive_end = search('^## ', 'n', archive_start + 1)
+        if archive_end == 0
+            let archive_end = line('$') + 1
+        endif
+        if archive_start + 1 <= archive_end - 1
+            execute (archive_start + 1) . ',' . (archive_end - 1) . 'delete'
+        endif
+
+        " Write the new archive lines
+        call append(archive_start, new_archive_lines)
+
+    catch
+        echohl ErrorMsg
+        echom 'Error in ArchiveTasks: ' . v:exception
+        echohl None
+    finally
+        call cursor(orig_line, orig_col)
+    endtry
 endfunc
 
 function! TaskSeparator()

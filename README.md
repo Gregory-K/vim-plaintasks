@@ -18,8 +18,11 @@ The `master` branch mirrors the original repository (`elentok/plaintasks.vim`).
 
 - Highlighting for the `@spot`, `@low`, `@today`, `@high`, `@critical` tags.
 
+- An improved approach to Archiving functionality _(see Notes)_
+
 - No default Keybindings. User should set their own.  
-  Available functions: `ToggleTask()`, `ToggleDone()`, `ToggleCancel()`,  
+  Available functions:  
+  `ToggleTask()`, `ToggleDone()`, `ToggleCancel()`,  
   `ArchiveTasks()`, `Separator()`
 
 GitHub: <https://github.com/Gregory-K/vim-plaintasks>  
@@ -28,9 +31,8 @@ Mod   : Gregory.K
 
 ## Notes
 
-Currently,
+- The `ArchiveTasks()` function now tries to properly handle task descriptions and notes, archiving tasks with their associated notes and sorting them by completion or cancellation date. (WIP)
 
-- The `ArchiveTasks()` does **! NOT !** work as intended for task descriptions. Do not use it if you utilize task comments/descriptions.
 - vim-plaintasks requires a terminal with support for 256 colours or higher.
 
 
