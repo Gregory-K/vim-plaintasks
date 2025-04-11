@@ -32,7 +32,7 @@ function! ToggleTaskDone()
     endif
 endfunc
 
-function! ToggleTaskCancel()
+function! ToggleTaskCancelled()
     let line = getline('.')
     let indent = matchstr(line, '^\s*')
     if line =~ '^\s*x'
