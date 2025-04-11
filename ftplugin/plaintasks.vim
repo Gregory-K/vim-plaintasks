@@ -64,6 +64,7 @@ function! ArchiveTasks() abort
     try
         " Find or create Archive section
         let archive_start = search('^Archive:', 'n')
+
         if archive_start == 0
             call append(line('$'), [
                 \ '', '', '---- ✄ -----------------------',
@@ -80,12 +81,13 @@ function! ArchiveTasks() abort
         let current_subproject = ''
         let current_task = ''
         let task_notes = []
-        let task_start_line = 0
+        let task_line_num = 0
         let i = 0
 
         " Parse lines
         while i < len(lines)
             let line = lines[i]
+            let line_num = i + 1  " 1-based line number
             let indent = matchstr(line, '^\s*')
 
             " Detect project headers
@@ -111,14 +113,21 @@ function! ArchiveTasks() abort
                         \ 'subproject': current_subproject,
                         \ 'task': current_task,
                         \ 'notes': task_notes,
-                        \ 'line': task_start_line,
                         \ 'date': date
                         \ })
-                    call extend(lines_to_delete, range(task_start_line, i - 1))
+                    " Delete both the task line and its notes
+                    call add(lines_to_delete, task_line_num)
+                    if !empty(task_notes)
+                        let first_note_line = task_line_num + 1
+                        let last_note_line = first_note_line + len(task_notes) - 1
+                        call extend(lines_to_delete, range(first_note_line, last_note_line))
+                    endif
                 endif
+
+                " Start tracking a new task
                 let current_task = line
                 let task_notes = []
-                let task_start_line = i + 1
+                let task_line_num = line_num
 
             " Detect notes
             elseif line =~ '^\s\+[^+\-x#].*' && current_task != ''
@@ -136,14 +145,19 @@ function! ArchiveTasks() abort
                         \ 'subproject': current_subproject,
                         \ 'task': current_task,
                         \ 'notes': task_notes,
-                        \ 'line': task_start_line,
                         \ 'date': date
                         \ })
-                    call extend(lines_to_delete, range(task_start_line, i - 1))
+                    " Delete both the task line and its notes
+                    call add(lines_to_delete, task_line_num)
+                    if !empty(task_notes)
+                        let first_note_line = task_line_num + 1
+                        let last_note_line = first_note_line + len(task_notes) - 1
+                        call extend(lines_to_delete, range(first_note_line, last_note_line))
+                    endif
                 endif
                 let current_task = ''
                 let task_notes = []
-                let task_start_line = 0
+                let task_line_num = 0
                 let current_subproject = ''
 
             endif
@@ -161,11 +175,31 @@ function! ArchiveTasks() abort
                 \ 'subproject': current_subproject,
                 \ 'task': current_task,
                 \ 'notes': task_notes,
-                \ 'line': task_start_line,
                 \ 'date': date
                 \ })
-            call extend(lines_to_delete, range(task_start_line, i - 1))
+            " Delete both the task line and its notes
+            call add(lines_to_delete, task_line_num)
+            if !empty(task_notes)
+                let first_note_line = task_line_num + 1
+                let last_note_line = first_note_line + len(task_notes) - 1
+                call extend(lines_to_delete, range(first_note_line, last_note_line))
+            endif
         endif
+
+        " Delete the original task lines
+        " (in reverse order to avoid line number shifts)
+        if !empty(lines_to_delete)
+            let lines_to_delete = uniq(sort(lines_to_delete, 'n'))
+            let i = len(lines_to_delete) - 1
+            while i >= 0
+                execute lines_to_delete[i] . 'delete'
+                let i -= 1
+            endwhile
+        endif
+
+        " We need to search for the archive section again
+        " since line numbers may have changed
+        let archive_start = search('^Archive:', 'n')
 
         " Gather existing archived tasks and notes
         let archive_lines = getbufline('%', archive_start + 1, '$')
@@ -243,15 +277,15 @@ function! ArchiveTasks() abort
         endfor
 
         " Clear existing archive lines before replacing
-        let archive_end = search('^## ', 'n', archive_start + 1)
-        if archive_end == 0
+        let archive_end = search('^## ', 'n')
+        if archive_end == 0 || archive_end <= archive_start
             let archive_end = line('$') + 1
         endif
-        if archive_start + 1 <= archive_end - 1
-            execute (archive_start + 1) . ',' . (archive_end - 1) . 'delete'
+        if archive_start + 1 < archive_end
+            execute (archive_start + 1) . ',' . (archive_end - 1) . 'delete _'
         endif
 
-        " Write the new archive lines
+        " Append the new archived tasks
         call append(archive_start, new_archive_lines)
 
     catch
