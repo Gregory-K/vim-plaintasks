@@ -23,7 +23,7 @@ The `master` branch mirrors the original repository (`elentok/plaintasks.vim`).
 - No default Keybindings. User should set their own.  
   Available functions:  
   `ToggleTask()`, `ToggleTaskDone()`, `ToggleTaskCancelled()`,  
-  `ArchiveTasks()`, `TaskSeparator()`
+  `AddTaskNote()`, `ArchiveTasks()`, `TaskSeparator()`
 
 GitHub: <https://github.com/Gregory-K/vim-plaintasks>  
 Mod   : Gregory.K
@@ -78,6 +78,7 @@ No default mappings provided. User should define their own in `.vimrc`.
 - ToggleTask() _(toggles the state of line as task or not)_
 - ToggleTaskDone()
 - ToggleTaskCancelled()
+- AddTaskNote()
 - ArchiveTasks()
 - TaskSeparator()
 
@@ -101,12 +102,14 @@ function! s:SetupPlainTasksMappings()
     vnoremap <silent> <buffer> <Esc>t :call ToggleTask()<CR>
     noremap  <silent> <buffer> <Esc>d :call ToggleTaskDone()<CR>
     noremap  <silent> <buffer> <Esc>x :call ToggleTaskCancelled()<CR>
+    noremap  <silent> <buffer> <Esc>n :call AddTaskNote()<CR>
     nnoremap <silent> <buffer> <Esc>a :call ArchiveTasks()<CR>
   else  " Windows
     nnoremap <silent> <buffer> <A-t> :call ToggleTask()<CR>
     vnoremap <silent> <buffer> <A-t> :call ToggleTask()<CR>
     noremap  <silent> <buffer> <A-d> :call ToggleTaskDone()<CR>
     noremap  <silent> <buffer> <A-x> :call ToggleTaskCancelled()<CR>
+    noremap  <silent> <buffer> <A-n> :call AddTaskNote()<CR>
     nnoremap <silent> <buffer> <A-a> :call ArchiveTasks()<CR>
   endif
   iabbr <buffer> -- <C-R>=TaskSeparator()<CR>

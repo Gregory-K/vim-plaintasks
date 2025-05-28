@@ -57,6 +57,16 @@ function! ToggleTask()
     endif
 endfunc
 
+function! AddTaskNote()
+    let line = getline('.')
+    let indent = matchstr(line, '^\s*')
+    let add_indent = "\t"  " Add 1 indent level for notes
+    call append(line('.'), indent . add_indent)
+    " move cursor to the new line and enter insert mode
+    normal! j
+    startinsert!
+endfunction
+
 function! ArchiveTasks() abort
     let orig_line = line('.')
     let orig_col = col('.')

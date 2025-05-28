@@ -35,7 +35,7 @@ This plugin is a fork of
 - No default Keybindings. User should set their own.
   Available functions:
   `ToggleTask()`, `ToggleTaskDone()`, `ToggleTaskCancelled()`,
-  `ArchiveTasks()`, `TaskSeparator()`
+  `AddTaskNote()`, `ArchiveTasks()`, `TaskSeparator()`
 
 NOTES
 
@@ -61,6 +61,7 @@ Available Functions:
 - ToggleTask() _(toggles the state of line as task or not)_
 - ToggleTaskDone()
 - ToggleTaskCancelled()
+- AddTaskNote()
 - ArchiveTasks()
 - TaskSeparator()
 
@@ -82,13 +83,15 @@ function! s:SetupPlainTasksMappings()
     vnoremap <silent> <buffer> <Esc>t :call ToggleTask()<CR>
     noremap  <silent> <buffer> <Esc>d :call ToggleTaskDone()<CR>
     noremap  <silent> <buffer> <Esc>x :call ToggleTaskCancelled()<CR>
+    noremap  <silent> <buffer> <Esc>n :call AddTaskNote()<CR>
     nnoremap <silent> <buffer> <Esc>a :call ArchiveTasks()<CR>
   else  " Windows
     nnoremap <silent> <buffer> <A-t> :call ToggleTask()<CR>
     vnoremap <silent> <buffer> <A-t> :call ToggleTask()<CR>
     noremap  <silent> <buffer> <A-d> :call ToggleTaskDone()<CR>
     noremap  <silent> <buffer> <A-x> :call ToggleTaskCancelled()<CR>
-    nnoremap <silent> <buffer> <A-a> :call ArchiveTasks()<CR>
+    noremap  <silent> <buffer> <A-n> :call AddTaskNote()<CR>
+    nnorema
   endif
   iabbr <buffer> -- <C-R>=TaskSeparator()<CR>
 endfunction
